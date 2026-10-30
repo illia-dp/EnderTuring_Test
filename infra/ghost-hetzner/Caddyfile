@@ -1,0 +1,9 @@
+{$BLOG_DOMAIN} {
+	# The Content API is public; all administration routes stay private.
+	@admin {
+		path /ghost /ghost/*
+		not path /ghost/api/content/*
+	}
+	respond @admin 404
+	reverse_proxy ghost:2368
+}

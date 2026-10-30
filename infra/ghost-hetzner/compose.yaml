@@ -1,0 +1,61 @@
+name: ghost
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ghost
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ${DB_PASSWORD:?}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?}
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: [CMD, mysqladmin, ping, -h, localhost]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  ghost:
+    image: ghost:6-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      url: https://${BLOG_DOMAIN:?}
+      admin__url: https://${ADMIN_DOMAIN:?}
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ghost
+      database__connection__password: ${DB_PASSWORD:?}
+      database__connection__database: ghost
+    ports:
+      - "127.0.0.1:2368:2368"
+    volumes:
+      - content:/var/lib/ghost/content
+    healthcheck:
+      test: [CMD, node, -e, "require('http').get('http://127.0.0.1:2368/', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      BLOG_DOMAIN: ${BLOG_DOMAIN:?}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      ghost:
+        condition: service_healthy
+volumes:
+  database:
+  content:
+  caddy_data:
+  caddy_config:
