@@ -123,6 +123,24 @@ export type Message = {
 };
 
 /**
+ * MetricsPublic
+ */
+export type MetricsPublic = {
+    /**
+     * Demo
+     */
+    demo?: boolean;
+    /**
+     * Active Users
+     */
+    active_users: number;
+    /**
+     * Completed Tasks
+     */
+    completed_tasks: number;
+};
+
+/**
  * NewPassword
  */
 export type NewPassword = {
@@ -157,6 +175,11 @@ export type PrivateUserCreate = {
      */
     is_verified?: boolean;
 };
+
+/**
+ * Role
+ */
+export type Role = 'admin' | 'manager' | 'member';
 
 /**
  * Token
@@ -198,10 +221,7 @@ export type UserCreate = {
      * Is Active
      */
     is_active?: boolean;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean;
+    role?: Role;
     /**
      * Full Name
      */
@@ -224,10 +244,7 @@ export type UserPublic = {
      * Is Active
      */
     is_active?: boolean;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean;
+    role?: Role;
     /**
      * Full Name
      */
@@ -272,10 +289,7 @@ export type UserUpdate = {
      * Is Active
      */
     is_active?: boolean | null;
-    /**
-     * Is Superuser
-     */
-    is_superuser?: boolean | null;
+    role?: Role | null;
     /**
      * Full Name
      */
@@ -920,6 +934,22 @@ export type itemsUpdateItemResponses = {
 };
 
 export type itemsUpdateItemResponse = itemsUpdateItemResponses[keyof itemsUpdateItemResponses];
+
+export type metricsReadMetricsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/metrics/';
+};
+
+export type metricsReadMetricsResponses = {
+    /**
+     * Successful Response
+     */
+    200: MetricsPublic;
+};
+
+export type metricsReadMetricsResponse = metricsReadMetricsResponses[keyof metricsReadMetricsResponses];
 
 export type privateCreateUserData = {
     body: PrivateUserCreate;

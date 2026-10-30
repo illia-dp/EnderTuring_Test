@@ -4,10 +4,10 @@ import { useNavigate } from "@tanstack/react-router"
 import {
   type Body_login_login_access_token as AccessToken,
   LoginService,
-  type UserPublic,
   type UserRegister,
   UsersService,
 } from "@/client"
+import { currentUserQueryOptions } from "@/lib/access"
 import { handleError } from "@/utils"
 import useCustomToast from "./useCustomToast"
 
@@ -20,9 +20,8 @@ const useAuth = () => {
   const queryClient = useQueryClient()
   const { showErrorToast } = useCustomToast()
 
-  const { data: user } = useQuery<UserPublic | null, Error>({
-    queryKey: ["currentUser"],
-    queryFn: async () => (await UsersService.readUserMe()).data,
+  const { data: user } = useQuery({
+    ...currentUserQueryOptions,
     enabled: isLoggedIn(),
   })
 
@@ -42,6 +41,8 @@ const useAuth = () => {
     const response = await LoginService.loginAccessToken({
       body: data,
     })
+    await queryClient.cancelQueries()
+    queryClient.clear()
     localStorage.setItem("access_token", response.data.access_token)
   }
 
@@ -53,8 +54,10 @@ const useAuth = () => {
     onError: handleError.bind(showErrorToast),
   })
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem("access_token")
+    await queryClient.cancelQueries()
+    queryClient.clear()
     navigate({ to: "/login" })
   }
 

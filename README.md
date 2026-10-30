@@ -3,6 +3,33 @@
 [![Test Docker Compose](../../actions/workflows/test-docker-compose.yml/badge.svg)](../../actions/workflows/test-docker-compose.yml)
 [![Test Backend](../../actions/workflows/test-backend.yml/badge.svg)](../../actions/workflows/test-backend.yml)
 
+## Role-Based Access Control
+
+This project extends the FastAPI Full Stack Template with three user roles:
+
+| Permission                      | Admin | Manager | Member |
+| ------------------------------- | ----- | ------- | ------ |
+| View users                      | Yes   | Yes     | No     |
+| Create, update and delete users | Yes   | No      | No     |
+| View metrics                    | Yes   | Yes     | No     |
+| Manage own profile              | Yes   | Yes     | Yes    |
+| Access all items                | Yes   | No      | No     |
+| Manage own items                | Yes   | Yes     | Yes    |
+
+Permissions are enforced by the backend and reflected in the frontend. Unauthorized routes display **403 Access Denied** without logging out the user.
+
+### Running and Testing
+
+Start the application with `docker compose watch`. Open `http://localhost:8000` to access the frontend.
+
+Initialize the database with `alembic upgrade head` and `python app/initial_data.py` inside the backend container if needed.
+
+The RBAC implementation includes three role-focused backend tests. The complete backend suite passes **61 tests**.
+
+### AI Development History
+
+The Codex development conversation for this feature is available in [ai-history/rbac-conversation.md](ai-history/rbac-conversation.md).
+
 ## Technology Stack and Features
 
 - ⚡ [**FastAPI**](https://fastapi.tiangolo.com) for the Python backend API.

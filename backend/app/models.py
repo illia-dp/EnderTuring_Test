@@ -1,19 +1,41 @@
 import uuid
 from datetime import UTC, datetime
+from enum import StrEnum
 
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
+from sqlalchemy import Column, Enum
 from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel._compat import SQLModelConfig
 
 
 def get_datetime_utc() -> datetime:
     return datetime.now(UTC)
 
 
+class Role(StrEnum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    MEMBER = "member"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
+    role: Role = Field(
+        default=Role.MEMBER,
+        sa_column=Column(
+            Enum(
+                Role,
+                values_callable=lambda roles: [role.value for role in roles],
+                native_enum=False,
+                create_constraint=True,
+                name="user_role",
+            ),
+            nullable=False,
+            server_default="member",
+        ),
+    )
     full_name: str | None = Field(default=None, max_length=255)
 
 
@@ -23,6 +45,8 @@ class UserCreate(UserBase):
 
 
 class UserRegister(SQLModel):
+    model_config = SQLModelConfig(extra="forbid")
+
     email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=8, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
@@ -32,12 +56,21 @@ class UserRegister(SQLModel):
 class UserUpdate(SQLModel):
     email: EmailStr | None = Field(default=None, max_length=255)
     is_active: bool | None = None
-    is_superuser: bool | None = None
+    role: Role | None = None
     full_name: str | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=128)
 
+    @field_validator("role")
+    @classmethod
+    def role_must_not_be_null(cls, value: Role | None) -> Role:
+        if value is None:
+            raise ValueError("Role must not be null")
+        return value
+
 
 class UserUpdateMe(SQLModel):
+    model_config = SQLModelConfig(extra="forbid")
+
     full_name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
 
